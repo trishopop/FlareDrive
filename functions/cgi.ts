@@ -23,6 +23,7 @@ import {
 } from "../lib/commons";
 import { responseInternalServerError } from "./commons";
 import { generatePassword } from "@/src/commons";
+import { dnsQuery } from "./dns";
 
 /**
  * Don't read fetch response body.
@@ -193,6 +194,11 @@ engine.registerFilter("hmac_sha256_sign", async (payload: unknown, key: string) 
   return sign;
 });
 
+engine.registerFilter("nslookup", async (name: string, type?: string, failOk?: boolean) => {
+  const result = await dnsQuery(name, type || "A", !!failOk);
+  return result;
+});
+
 /*
 {% fetch "variableName" "url" %}
 
@@ -316,10 +322,10 @@ engine.registerTag("read_body", {
 });
 
 /*
-{% set_header "Content-Type" "text/plain" %}
-{% set_header "Content-Type: text/plain" %}
-{% set_header "Status" 404 %}
-{% set_header headers %} # headers is Record<string,string> type
+{%- set_header "Content-Type" "text/plain" -%}
+{%- set_header "Content-Type: application/json" -%}
+{%- set_header "Status" 404 -%}
+{%- set_header headers -%} # headers is Record<string,string> type
 
 Set value to "" / undefined / null to delete a header
 */
